@@ -1,4 +1,4 @@
-// pages/index.jsx
+
 import { useState, useMemo, useCallback, useEffect } from "react";
 import IndexLayout from "@/components/layouts/IndexLayout";
 import PokemonCard from "@/components/ui/PokemonCard";

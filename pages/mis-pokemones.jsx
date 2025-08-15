@@ -1,4 +1,4 @@
-// pages/mis-pokemones.jsx
+
 import IndexLayout from '@/components/layouts/IndexLayout'
 import PokemonCard from '@/components/ui/PokemonCard'
 import { useCart } from '@/context/CartContext'
