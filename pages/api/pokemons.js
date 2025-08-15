@@ -10,19 +10,12 @@ export default async function handler(req, res) {
 
     const pokemons = await fetchPokemons(limitNum, offsetNum);
 
-    const getRarity = (price) => {
-      if (price < 100) return "Comunes";
-      if (price < 500) return "Raros";
-      return "Legendarios";
-    };
-
     const formatted = pokemons.map((p) => {
       const price = getRandomPrice();
       return {
         ...p,
         price,
         currency: getRandomCurrency().money,
-        rarity: getRarity(price),
       };
     });
 

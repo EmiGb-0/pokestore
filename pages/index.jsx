@@ -17,14 +17,6 @@ const TYPE_MAP = {
 };
 
 const TYPE_OPTIONS = Object.keys(TYPE_MAP);
-const RARITY_OPTIONS = ["Comunes", "Raros", "Legendarios"];
-
-
-const getRarityFromPrice = (price) => {
-  if (price < 100) return "Comunes";
-  if (price < 500) return "Raros";
-  return "Legendarios";
-};
 
 export default function Home({ pokemons: initialPokemons, wallet, starterPokemons }) {
 
@@ -32,7 +24,6 @@ export default function Home({ pokemons: initialPokemons, wallet, starterPokemon
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedType, setSelectedType] = useState("");
-  const [selectedRarity, setSelectedRarity] = useState("");
   const [offset, setOffset] = useState(initialPokemons?.length || 0);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -54,13 +45,9 @@ export default function Home({ pokemons: initialPokemons, wallet, starterPokemon
         ? p.types && p.types.includes(TYPE_MAP[selectedType])
         : true;
 
-      const matchesRarity = selectedRarity
-        ? (p.rarity ?? getRarityFromPrice(Number(p.price || 0))) === selectedRarity
-        : true;
-
-      return matchesName && matchesType && matchesRarity;
+      return matchesName && matchesType;
     });
-  }, [pokemons, debouncedSearch, selectedType, selectedRarity]);
+  }, [pokemons, debouncedSearch, selectedType]);
 
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore) return;
@@ -114,25 +101,11 @@ export default function Home({ pokemons: initialPokemons, wallet, starterPokemon
               </option>
             ))}
           </select>
-
-          <select
-            aria-label="Filtrar por rareza"
-            value={selectedRarity}
-            onChange={(e) => setSelectedRarity(e.target.value)}
-            className="border rounded p-2 bg-gray-800"
-          >
-            <option value="">Todas las rarezas</option>
-            {RARITY_OPTIONS.map((r) => (
-              <option className="bg-gray-800" key={r} value={r}>
-                {r}
-              </option>
-            ))}
-          </select>
         </div>
 
         {filteredPokemons.length === 0 ? (
           <div className="text-center py-20 text-gray-400">
-            {debouncedSearch || selectedType || selectedRarity ? (
+            {debouncedSearch || selectedType ? (
               <>
                 <p className="mb-2">No se encontraron pokemons que coincidan.</p>
                 <p className="text-sm">Intenta cambiar los filtros o borrar la búsqueda.</p>
@@ -188,7 +161,6 @@ export async function getServerSideProps() {
       ...p,
       price,
       currency: getRandomCurrency().money,
-      rarity: getRarityFromPrice(price),
     };
   });
 
@@ -196,7 +168,6 @@ export async function getServerSideProps() {
     ...p,
     price: getRandomPrice(),
     currency: getRandomCurrency().money,
-    rarity: getRarityFromPrice(getRandomPrice()),
   }));
 
   const wallet = {
