@@ -89,27 +89,24 @@ export function CartProvider({ children, walletCurrency, walletBalance }) {
 
         const amountInUSD = amount / exchangeRates[fromCurrency];
         return amountInUSD * exchangeRates[wallet.currency];
-        },
-        [exchangeRates, wallet.currency]
+        }, [exchangeRates, wallet.currency]
     );
 
     // Agregar al carrito (con precio convertido)
-    const addToCart = useCallback(
-        (pokemon) => {
-        if (!ratesReady) {
-            console.warn("Las tasas de cambio no están listas");
-            return;
-        }
-        if (purchased.some((p) => p.id === pokemon.id) || cart.some((p) => p.id === pokemon.id)) {
-            return;
-        }
+    const addToCart = useCallback((pokemon) => {
+            if (!ratesReady) {
+                console.warn("Las tasas de cambio no están listas");
+                return;
+            }
+            if (purchased.some((p) => p.id === pokemon.id) || cart.some((p) => p.id === pokemon.id)) {
+                return;
+            }
 
-        const convertedPrice = convertPrice(pokemon.price, pokemon.currency);
-        const pokemonWithConvertedPrice = { ...pokemon, convertedPrice };
+            const convertedPrice = convertPrice(pokemon.price, pokemon.currency);
+            const pokemonWithConvertedPrice = { ...pokemon, convertedPrice };
 
-        setCart((prev) => [...prev, pokemonWithConvertedPrice]);
-        },
-        [cart, purchased, ratesReady, convertPrice]
+            setCart((prev) => [...prev, pokemonWithConvertedPrice]);
+        }, [cart, purchased, ratesReady, convertPrice]
     );
 
     const removeFromCart = useCallback((id) => {
@@ -119,10 +116,10 @@ export function CartProvider({ children, walletCurrency, walletBalance }) {
     const confirmPurchase = useCallback(() => {
         const total = cart.reduce((sum, p) => sum + Number(p.convertedPrice || 0), 0);
         if (wallet.balance >= total) {
-        setWallet((prev) => ({ ...prev, balance: prev.balance - total }));
-        setPurchased((prev) => [...prev, ...cart]);
-        setCart([]);
-        return true;
+            setWallet((prev) => ({ ...prev, balance: prev.balance - total }));
+            setPurchased((prev) => [...prev, ...cart]);
+            setCart([]);
+            return true;
         }
         return false;
     }, [cart, wallet.balance]);
@@ -139,11 +136,44 @@ export function CartProvider({ children, walletCurrency, walletBalance }) {
     );
 
     const reloadWallet = useCallback((amount) => {
-        setWallet((prev) => ({
-        ...prev,
-        balance: prev.balance + Number(amount || 0),
+            setWallet((prev) => ({
+            ...prev,
+            balance: prev.balance + Number(amount || 0),
         }));
     }, []);
+
+    const buyNow = useCallback((pokemon) => {
+        if (!ratesReady) {
+            alert("Las tasas de cambio no están listas. Intente de nuevo en unos momentos.");
+            return false;
+        }
+
+        if (purchased.some(p => p.id === pokemon.id)) {
+            return false;
+        }
+
+        const convertedPrice = convertPrice(pokemon.price, pokemon.currency);
+
+        if (wallet.balance >= convertedPrice) {
+            setWallet(prev => ({
+                ...prev,
+                balance: prev.balance - convertedPrice
+            }));
+
+            setPurchased(prev => [...prev, { 
+                ...pokemon, 
+                convertedPrice 
+            }]);
+
+            if (cart.some(p => p.id === pokemon.id)) {
+                setCart(prev => prev.filter(p => p.id !== pokemon.id));
+            }
+            
+            return true;
+        }
+        
+        return false;
+    }, [purchased, wallet.balance, convertPrice, ratesReady, cart]);
 
     return (
         <CartContext.Provider
@@ -160,6 +190,7 @@ export function CartProvider({ children, walletCurrency, walletBalance }) {
             reloadWallet,
             isClient,
             ratesReady,
+            buyNow 
         }}
         >
             {children}
