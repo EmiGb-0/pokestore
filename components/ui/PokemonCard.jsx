@@ -4,7 +4,7 @@ import { FaShoppingCart } from "react-icons/fa";
 import { useCart } from "@/context/CartContext";
 
 const PokemonCard = ({ id, name, image, price, currency, color }) => {
-    const { addToCart, purchased, cart } = useCart();
+    const { addToCart, purchased, cart, buyNow } = useCart();
     const isPurchased = purchased.some(p => p.id === id);
     const isInCart = cart.some(p => p.id === id);
 
@@ -43,12 +43,22 @@ const PokemonCard = ({ id, name, image, price, currency, color }) => {
                         >
                             <FaShoppingCart />
                         </button>
-                        <Link 
-                            href={`/pokemon/${name}`} 
+                        <button 
+                            onClick={() => {
+                                const success = buyNow({ 
+                                    id, 
+                                    name, 
+                                    image, 
+                                    price, 
+                                    currency, 
+                                    color 
+                                });
+                                alert(success ? "¡Compra exitosa!" : "Fondos insuficientes");
+                            }}
                             className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 text-sm"
                         >
                             Comprar
-                        </Link>
+                        </button>
                     </>
                 ) : (
                     <span className="bg-gray-500 text-white px-4 py-2 rounded text-sm">
